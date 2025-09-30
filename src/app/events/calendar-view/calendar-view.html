@@ -1,0 +1,37 @@
+<app-header></app-header>
+
+<div class="calendar-page-container">
+  <button routerLink="/dashboard" class="btn btn-secondary btn-sm mb-3">
+    &lt; Retour au Dashboard
+  </button>
+  
+  <h1>Mon Calendrier</h1>
+
+  <h2 class="current-month-title">{{ currentMonth }}</h2>
+
+  <div class="calendar-main-layout">
+    
+    <div class="full-calendar-container">
+      <full-calendar [options]="calendarOptions"></full-calendar>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>Événements récents</h3>
+      
+      <div *ngIf="recentEvents.length > 0; else noEvents">
+        <div *ngFor="let event of recentEvents" class="sidebar-event-item">
+          <strong>{{ event.titre }}</strong>
+          <p class="date-time">{{ event.dateDebut | date: 'dd MMM, HH:mm' }}</p>
+        </div>
+      </div>
+      <ng-template #noEvents>
+        <p>Aucun événement récent ou futur proche.</p>
+      </ng-template>
+      
+      <hr>
+      <button class="btn btn-primary w-100" (click)="openEventModal(null)">
+        + Nouvel événement
+      </button>
+    </div>
+  </div>
+</div>

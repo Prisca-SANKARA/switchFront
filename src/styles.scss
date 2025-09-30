@@ -1,1 +1,64 @@
 /* You can add global styles to this file, and also import other style files */
+/*
+  Styles globaux pour l'application (src/styles.scss)
+  Ces styles définissent la palette de couleurs et la typographie de base
+  pour un aspect professionnel et chic.
+*/
+
+// --- 1. Reset et Base ---
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; // Police moderne
+  background-color: #f8f9fa; /* Arrière-plan très clair */
+  color: #343a40; /* Texte principal foncé */
+  min-height: 100vh;
+  // Assure une transition douce pour les changements de thème (si implémenté)
+  transition: background-color 0.3s, color 0.3s;
+}
+
+// --- 2. Variables (Couleurs du Thème) ---
+$primary: #4a69bd; // Bleu élégant (boutons, accents)
+$secondary: #8496c6; // Bleu clair (utilisé pour les cartes subtiles)
+$success: #28a745;
+$danger: #dc3545;
+$warning: #ffc107;
+$light: #ffffff;
+$dark: #212529;
+
+// Mélange pour un dégradé subtil dans le Dashboard ou les Cards (Aspect Chic)
+$gradient-start: #4a69bd;
+$gradient-end: #6d93e8;
+
+// --- 3. Typographie (Titre/Card Style) ---
+h1, h2, h3 {
+  color: $dark;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+// Application du dégradé subtil pour un titre accrocheur
+.app-title-chic {
+  background: linear-gradient(90deg, $gradient-start, $gradient-end);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+// --- 4. Utilitaires de Design pour la Fluidité ---
+.card-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Ombre douce */
+  border-radius: 8px; /* Coins arrondis */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  &:hover {
+    transform: translateY(-3px); /* Effet "lévitation" à l'approche */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+}

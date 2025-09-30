@@ -1,0 +1,73 @@
+/* src/app/events/calendar-view/calendar-view.component.scss */
+
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$card-bg: #ffffff;
+$border-color: #e9ecef;
+
+.calendar-page-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.current-month-title {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #343a40;
+  text-align: center;
+}
+
+.calendar-main-layout {
+  display: flex;
+  gap: 20px;
+  
+  .full-calendar-container {
+    flex: 3; // Le calendrier prend 3/4 de l'espace
+    background-color: $card-bg;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    z-index: 1; // Assure que le calendrier est au-dessus des autres éléments
+  }
+
+  .sidebar-card {
+    flex: 1; // La sidebar prend 1/4 de l'espace
+    background-color: $card-bg;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    h3 {
+      font-size: 1.4rem;
+      border-bottom: 1px solid $border-color;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      color: $primary-color;
+    }
+    
+    .sidebar-event-item {
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px dotted $border-color;
+        
+        strong {
+            display: block;
+            color: #343a40;
+        }
+        .date-time {
+            font-size: 0.85rem;
+            color: $secondary-color;
+            margin: 0;
+        }
+    }
+  }
+}
+
+// ⚠️ Styles pour les éléments natifs de FullCalendar
+.fc-toolbar-title {
+    font-size: 1.5rem !important;
+}
+.fc-event {
+    cursor: pointer;
+}

@@ -1,0 +1,124 @@
+/* src/app/dashboard/dashboard/dashboard.component.scss */
+
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$card-bg: #ffffff;
+$border-color: #e9ecef;
+
+.dashboard-content {
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.kpi-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+
+  .kpi-card {
+    flex: 1;
+    background-color: $card-bg;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: center;
+
+    h2 {
+      font-size: 1.2rem;
+      color: $secondary-color;
+    }
+
+    .count {
+      font-size: 3rem;
+      font-weight: bold;
+      color: $primary-color;
+      margin: 10px 0 0;
+    }
+  }
+}
+
+.main-row {
+  display: flex;
+  gap: 20px;
+
+  .recent-events-card {
+    flex: 3; // Environ 3/4 de la largeur
+    background-color: $card-bg;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    h3 {
+      border-bottom: 2px solid $border-color;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      color: #343a40;
+    }
+    
+    .event-item {
+        margin-bottom: 15px;
+
+        h4 {
+            color: $primary-color;
+            margin-bottom: 5px;
+        }
+
+        .date, .location {
+            font-size: 0.9rem;
+            color: $secondary-color;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid $border-color;
+            margin: 10px 0;
+        }
+    }
+    .all-events-link {
+        display: block;
+        margin-top: 10px;
+        text-align: right;
+        color: $primary-color;
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+  }
+
+  .quick-actions-card {
+    flex: 1; // Environ 1/4 de la largeur
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-top: 50px; // Pour aligner avec les éléments du côté
+    
+    .action-btn {
+      padding: 15px 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-align: center;
+      text-decoration: none; // Pour le routerLink
+
+      &.view-calendar-btn {
+        background-color: $secondary-color;
+        color: white;
+        &:hover {
+          background-color: darken($secondary-color, 10%);
+        }
+      }
+
+      &.new-event-btn {
+        background-color: $primary-color;
+        color: white;
+        &:hover {
+          background-color: darken($primary-color, 10%);
+        }
+      }
+    }
+  }
+}

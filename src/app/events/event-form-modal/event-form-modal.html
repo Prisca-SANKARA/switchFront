@@ -1,0 +1,99 @@
+<div class="modal-header">
+  <h4 class="modal-title">{{ eventToEdit ? 'Modifier l\'événement' : 'Nouvel événement' }}</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+
+<form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
+  <div class="modal-body">
+
+    <fieldset class="form-section">
+      <legend>Détails de l'événement</legend>
+
+      <div class="mb-3">
+        <label for="titre" class="form-label">Titre *</label>
+        <input id="titre" type="text" class="form-control" formControlName="titre">
+        <div *ngIf="eventForm.get('titre')?.invalid && eventForm.get('titre')?.touched" class="text-danger">
+          Le titre est requis.
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="dateDebut" class="form-label">Début *</label>
+          <input id="dateDebut" type="datetime-local" class="form-control" formControlName="dateDebut">
+          <div *ngIf="eventForm.get('dateDebut')?.invalid && eventForm.get('dateDebut')?.touched" class="text-danger">
+            La date de début est requise.
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="dateFin" class="form-label">Fin *</label>
+          <input id="dateFin" type="datetime-local" class="form-control" formControlName="dateFin">
+          <div *ngIf="eventForm.get('dateFin')?.invalid && eventForm.get('dateFin')?.touched" class="text-danger">
+            La date de fin est requise.
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="lieu" class="form-label">Lieu</label>
+        <input id="lieu" type="text" class="form-control" formControlName="lieu">
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea id="description" class="form-control" formControlName="description" rows="3"></textarea>
+      </div>
+
+    </fieldset>
+
+    <fieldset formArrayName="participants" class="form-section mt-4">
+      <legend>Participants ({{ participants.length }})</legend>
+
+      <div *ngFor="let participant of participants.controls; let i = index" [formGroupName]="i" class="participant-group p-3 mb-2">
+        <div class="row g-2">
+          
+          <div class="col-md-3">
+            <input type="text" class="form-control" placeholder="Nom" formControlName="nom">
+            <div *ngIf="participant.get('nom')?.invalid && participant.get('nom')?.touched" class="text-danger-small">
+              Nom requis.
+            </div>
+          </div>
+          
+          <div class="col-md-3">
+            <input type="text" class="form-control" placeholder="Prénom" formControlName="prenom">
+            <div *ngIf="participant.get('prenom')?.invalid && participant.get('prenom')?.touched" class="text-danger-small">
+              Prénom requis.
+            </div>
+          </div>
+          
+          <div class="col-md-5">
+            <input type="email" class="form-control" placeholder="Email" formControlName="email">
+            <div *ngIf="participant.get('email')?.invalid && participant.get('email')?.touched" class="text-danger-small">
+              Email valide requis.
+            </div>
+          </div>
+          
+          <div class="col-md-1 d-flex align-items-center justify-content-end">
+            <button type="button" class="btn btn-sm btn-danger remove-btn" (click)="removeParticipant(i)" [disabled]="participants.length === 1">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+      
+      <button type="button" class="btn btn-sm btn-outline-primary mt-3" (click)="addParticipant()">
+        + Ajouter un participant
+      </button>
+
+    </fieldset>
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss('Cancel click')">Annuler</button>
+    <button type="submit" class="btn btn-primary" [disabled]="eventForm.invalid">
+      {{ eventToEdit ? 'Sauvegarder les modifications' : 'Créer l\'événement' }}
+    </button>
+  </div>
+</form>

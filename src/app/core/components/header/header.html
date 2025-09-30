@@ -1,0 +1,13 @@
+<p>header works!</p><header class="navbar">
+  <div class="logo">Tableau de bord</div>
+  
+  <nav class="user-actions">
+    <span *ngIf="userName && userLastname" class="user-name">
+        {{ userName }} {{ userLastname }}
+    </span>
+    
+    <button (click)="logout()" class="logout-btn">Logout</button>
+    
+    <button routerLink="/calendar" class="add-btn">add</button>
+  </nav>
+</header>

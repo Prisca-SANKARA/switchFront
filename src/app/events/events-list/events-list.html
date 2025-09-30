@@ -1,0 +1,71 @@
+<app-header></app-header>
+
+<div class="events-list-container">
+  <button routerLink="/dashboard" class="btn btn-secondary btn-sm mb-4">
+    &lt; Retour au Dashboard
+  </button>
+  
+  <h1>Mes Événements (Liste)</h1>
+
+  <div class="events-grid">
+    
+    <div *ngIf="events.length === 0" class="no-events-message">
+        <p>Aucun événement n'a été trouvé.</p>
+    </div>
+
+    <div *ngFor="let event of events" class="event-card">
+      <div class="card-header">
+        <h3>{{ event.titre }}</h3>
+        <span class="location">{{ event.lieu }}</span>
+      </div>
+
+      <div class="card-body">
+        <p class="description">{{ event.description | slice:0:100 }}{{ event.description.length > 100 ? '...' : '' }}</p>
+        
+        <div class="details">
+            <p><strong>Début:</strong> {{ event.dateDebut | date: 'dd/MM/yyyy à HH:mm' }}</p>
+            <p><strong>Fin:</strong> {{ event.dateFin | date: 'dd/MM/yyyy à HH:mm' }}</p>
+            <p><strong>Participants:</strong> {{ event.participants.length }}</p>
+        </div>
+        
+        <div class="participants-list">
+            <span *ngFor="let p of event.participants | slice:0:3; let isLast = last">
+                {{ p.prenom }} {{ p.nom }}{{ !isLast ? ', ' : '' }}
+            </span>
+            <span *ngIf="event.participants.length > 3"> et {{ event.participants.length - 3 }} autres.</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button (click)="editEvent(event)" class="btn btn-primary btn-sm">Modifier</button>
+        <button (click)="deleteEvent(event.id!, event.titre)" class="btn btn-danger btn-sm">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="eventData && eventData.totalPages > 1" class="pagination-controls">
+    <button 
+      class="btn btn-outline-secondary" 
+      (click)="changePage(currentPage - 1)" 
+      [disabled]="currentPage === 1">
+      Précédent
+    </button>
+    
+    <span *ngFor="let page of totalPagesArray" class="page-number">
+      <button 
+        class="btn btn-sm" 
+        [class.btn-info]="page === currentPage"
+        [class.btn-outline-info]="page !== currentPage"
+        (click)="changePage(page)">
+        {{ page }}
+      </button>
+    </span>
+
+    <button 
+      class="btn btn-outline-secondary" 
+      (click)="changePage(currentPage + 1)" 
+      [disabled]="currentPage === eventData.totalPages">
+      Suivant
+    </button>
+  </div>
+</div>

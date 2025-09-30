@@ -1,0 +1,43 @@
+<app-header></app-header>
+
+<div class="dashboard-content">
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <h2>Mes événements du jour</h2>
+      <p class="count">{{ eventsToday }}</p>
+    </div>
+    <div class="kpi-card">
+      <h2>Mes événements de la semaine</h2>
+      <p class="count">{{ eventsThisWeek }}</p>
+    </div>
+  </div>
+
+  <div class="main-row">
+    
+    <div class="recent-events-card">
+      <h3>Mes événements récents</h3>
+      
+      <div class="events-list">
+        <div *ngFor="let event of recentEvents" class="event-item">
+          <h4>{{ event.titre }}</h4>
+          <p class="date">{{ event.dateDebut | date: 'dd/MM à HH:mm' }} - {{ event.dateFin | date: 'HH:mm' }}</p>
+          <p class="location">Lieu: {{ event.lieu }}</p>
+          <hr>
+        </div>
+
+        <p *ngIf="recentEvents.length === 0">Aucun événement récent ou futur proche.</p>
+      </div>
+
+      <a routerLink="/events" class="all-events-link">Voir tous les événements</a>
+    </div>
+
+    <div class="quick-actions-card">
+      <button routerLink="/calendar" class="action-btn view-calendar-btn">
+        Voir calendrier
+      </button>
+      <button routerLink="/new-event" class="action-btn new-event-btn">
+        Nouvel événement
+      </button>
+    </div>
+  </div>
+</div>

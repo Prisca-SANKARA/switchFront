@@ -1,0 +1,52 @@
+/* src/app/events/event-form-modal/event-form-modal.component.scss */
+
+$primary-color: #007bff;
+$danger-color: #dc3545;
+$light-bg: #f8f9fa;
+$border-color: #dee2e6;
+
+.form-section {
+  padding: 15px;
+  border: 1px solid $border-color;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+legend {
+  font-size: 1.25rem;
+  color: $primary-color;
+  padding: 0 10px;
+  margin-left: -10px;
+  margin-bottom: 15px;
+}
+
+.participant-group {
+  background-color: $light-bg;
+  border: 1px dashed $border-color;
+  border-radius: 4px;
+
+  .text-danger-small {
+    color: $danger-color;
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+  
+  .remove-btn {
+    // Pour les boutons X des participants
+    background: transparent;
+    border: none;
+    color: $danger-color;
+    padding: 0 5px;
+    font-size: 1.2rem;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+  }
+}
+
+.modal-footer {
+    // Aligner le bouton sur la droite
+    justify-content: flex-end;
+}
