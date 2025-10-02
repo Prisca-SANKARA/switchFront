@@ -178,9 +178,11 @@ export class EventFormModalComponent implements OnInit {
   // --- Gestion du CRUD via Service (Méthodes à implémenter au Service) ---
   
   createEvent(event: IEvent): void {
+       console.log("L'evènement envoyé est : ", event); 
       this.eventService.createEvent(event).subscribe({
           next: () => {
               // 'true' indique à la modale d'origine que l'opération a réussi
+            
               this.activeModal.close(true); 
           },
           error: (err) => {
