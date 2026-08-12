@@ -1,0 +1,11 @@
+# Configuration Netlify pour le front Angular (build de production).
+[build]
+  command = "npm run build"
+  publish = "dist/e-agenda-front/browser"
+
+# Application single-page : toutes les routes renvoient index.html
+# (sinon un rafraîchissement sur /dashboard donnerait un 404).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

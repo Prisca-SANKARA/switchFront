@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: 0.85rem clamp(1rem, 4vw, 2.5rem);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 4px 20px rgba(76, 29, 149, 0.06);
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+}
+.logo::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  margin-right: 9px;
+  background: var(--grad-accent);
+  box-shadow: 0 0 14px rgba(251, 113, 133, 0.7);
+}
+.logo:hover { color: var(--ink); }
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+}
+.nav-link {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--muted);
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--r-pill);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.nav-link:hover { color: var(--brand-strong); background: rgba(124, 58, 237, 0.07); }
+.nav-link.active-link {
+  color: #fff;
+  background: var(--grad-brand-soft);
+  box-shadow: var(--sh-glow);
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.user-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.user-name::before {
+  content: "";
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  box-shadow: var(--sh-sm);
+}
+
+.logout-btn {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 0.5rem 1.1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.logout-btn:hover {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+@media (max-width: 640px) {
+  .user-name { display: none; }
+  .main-nav { gap: 0; }
+  .nav-link { padding: 0.45rem 0.7rem; font-size: 0.88rem; }
+}

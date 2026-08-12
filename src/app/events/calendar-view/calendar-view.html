@@ -16,18 +16,35 @@
     </div>
 
     <div class="sidebar-card">
-      <h3>Événements récents</h3>
-      
+      <div class="today-banner" [class.has-events]="todayCount > 0">
+        <span class="today-ic">📅</span>
+        <span *ngIf="todayCount > 0">
+          <strong>{{ todayCount }}</strong> événement(s) aujourd'hui
+        </span>
+        <span *ngIf="todayCount === 0">Rien de prévu aujourd'hui</span>
+      </div>
+
+      <h3>Prochains événements</h3>
+
       <div *ngIf="recentEvents.length > 0; else noEvents">
         <div *ngFor="let event of recentEvents" class="sidebar-event-item">
-          <strong>{{ event.titre }}</strong>
-          <p class="date-time">{{ event.dateDebut | date: 'dd MMM, HH:mm' }}</p>
+          <span class="dot" [style.background]="colorFor(event)"></span>
+          <div>
+            <strong>{{ event.titre }}</strong>
+            <p class="date-time">{{ event.dateDebut | date: 'dd MMM, HH:mm' }}</p>
+          </div>
         </div>
       </div>
       <ng-template #noEvents>
-        <p>Aucun événement récent ou futur proche.</p>
+        <p>Aucun événement à venir.</p>
       </ng-template>
-      
+
+      <div class="legend">
+        <span><i class="lg" style="background:#7c3aed"></i> À venir</span>
+        <span><i class="lg" style="background:#10b981"></i> En cours</span>
+        <span><i class="lg" style="background:#9a95ac"></i> Terminé</span>
+      </div>
+
       <hr>
       <button class="btn btn-primary w-100" (click)="openEventModal(null)">
         + Nouvel événement

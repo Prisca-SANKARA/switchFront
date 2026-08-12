@@ -1,35 +1,59 @@
-// src/app/dashboard/dashboard/dashboard.component.ts
-
 import { Component, OnInit, inject } from '@angular/core';
 import { HeaderComponent } from '../../core/components/header/header';
 import { CommonModule } from '@angular/common';
-import { EventService } from '../../events/event.service'; // ⚠️ Import
-import { IEvent } from '../../core/models/event.models'; // ⚠️ Import
+import { EventService } from '../../events/event.service';
+import { IEvent } from '../../core/models/event.models'; 
 import { RouterLink } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap'; // <--- 1. NOUVEL IMPORT NÉCESSAIRE
+import { EventFormModalComponent } from '../../events/event-form-modal/event-form-modal'; // <--- 2. NOUVEL IMPORT NÉCESSAIRE
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  // ⚠️ Ajout de RouterLink pour la navigation
+  // Ajoutez NgbModal et EventFormModalComponent comme dépendances dans imports 
+  // si vous les utilisez (NgbModal n'est pas un composant mais un service)
   imports: [CommonModule, HeaderComponent, RouterLink], 
   templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss'] // ⚠️ Utilisation de SCSS
+  styleUrls: ['./dashboard.scss']
 })
 export class DashboardComponent implements OnInit {
   private eventService = inject(EventService);
+  private modalService = inject(NgbModal); // <--- 3. INJECTION DU SERVICE MODALE
+
+  // Utilisateur courant (signal) pour l'accueil personnalisé du tableau de bord.
+  readonly user = inject(AuthService).currentUser;
 
   allEvents: IEvent[] = [];
   eventsToday: number = 0;
   eventsThisWeek: number = 0;
+  upcomingCount: number = 0;
   recentEvents: IEvent[] = [];
   
-  // Constantes pour le filtrage
   private readonly RECENT_EVENTS_LIMIT = 5;
   
   ngOnInit(): void {
     this.loadEventsForDashboard();
   }
 
+  /**
+   * Ouvre la modale du formulaire d'événement pour la création.
+   * C'est la même logique que dans CalendarViewComponent.
+   */
+  openNewEventModal(): void { // <--- 4. NOUVELLE MÉTHODE
+    const modalRef = this.modalService.open(EventFormModalComponent, { size: 'lg', centered: true });
+    
+    // Si l'utilisateur crée ou modifie un événement, on rafraîchit le tableau de bord
+    modalRef.result.then((result) => {
+        if (result === true) {
+            // Recharger les données si l'événement a été créé/modifié
+            this.loadEventsForDashboard(); 
+        }
+    }, () => {
+        // Annulation ou clic en dehors
+    });
+  }
+  
   // Pourquoi : On récupère potentiellement tous les événements (avec une limite très haute) 
   // pour faire le calcul des KPIs côté client.
   loadEventsForDashboard(): void {
@@ -59,39 +83,45 @@ export class DashboardComponent implements OnInit {
     // Initialisation
     this.eventsToday = 0;
     this.eventsThisWeek = 0;
-    
-    // Pour les événements récents/futurs (entre J-2 et J+3)
-    const twoDaysAgo = new Date(today);
-    twoDaysAgo.setDate(today.getDate() - 2);
-    const threeDaysFromNow = new Date(today);
-    threeDaysFromNow.setDate(today.getDate() + 4); // +4 car c'est exclusif
 
-    const eventsForRecentList: IEvent[] = [];
+    // Instant présent. Un événement est « pas encore terminé » si sa date de FIN
+    // est dans le futur -> les compteurs diminuent au fil de la journée quand un
+    // événement se termine (et pas seulement au changement de jour).
+    const now = new Date();
+    const weekEnd = weekStart.getTime() + 7 * 24 * 60 * 60 * 1000;
+    const upcoming: IEvent[] = [];
 
     this.allEvents.forEach(event => {
-      // Les dates du backend sont des strings "YYYY-MM-DD HH:MM", on crée des objets Date
       const startDate = new Date(event.dateDebut);
-      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(event.dateFin);
+      const startDay = new Date(startDate);
+      startDay.setHours(0, 0, 0, 0);
 
-      // 1. Événements du jour (aujourd'hui)
-      if (startDate.getTime() === today.getTime()) {
+      const notFinished = endDate.getTime() >= now.getTime();
+      if (!notFinished) {
+        return; // événement passé : ignoré dans tous les compteurs du dashboard
+      }
+
+      // 1. Aujourd'hui (démarre aujourd'hui et pas encore terminé)
+      if (startDay.getTime() === today.getTime()) {
         this.eventsToday++;
       }
 
-      // 2. Événements de la semaine (entre weekStart et weekStart + 7 jours)
-      if (startDate.getTime() >= weekStart.getTime() && startDate.getTime() < weekStart.getTime() + (7 * 24 * 60 * 60 * 1000)) {
+      // 2. Cette semaine (démarre dans la semaine en cours et pas encore terminé)
+      if (startDay.getTime() >= weekStart.getTime() && startDay.getTime() < weekEnd) {
         this.eventsThisWeek++;
       }
 
-      // 3. Événements pour la liste "Récents" (passés de 2 jours ou futurs jusqu'à 3 jours)
-      if (startDate.getTime() >= twoDaysAgo.getTime() && startDate.getTime() < threeDaysFromNow.getTime()) {
-        eventsForRecentList.push(event);
-      }
+      // 3. À venir / en cours : tout ce qui n'est pas terminé.
+      upcoming.push(event);
     });
-    
-    // Triez et limitez les événements récents/futurs
-    this.recentEvents = eventsForRecentList
-      .sort((a, b) => new Date(a.dateDebut).getTime() - new Date(b.dateDebut).getTime())
-      .slice(0, this.RECENT_EVENTS_LIMIT);
+
+    // Tri du plus proche au plus lointain.
+    upcoming.sort((a, b) => new Date(a.dateDebut).getTime() - new Date(b.dateDebut).getTime());
+
+    // Compteur « À venir » = TOTAL des événements non terminés (pas la liste tronquée).
+    this.upcomingCount = upcoming.length;
+    // La liste affichée reste limitée pour l'UI.
+    this.recentEvents = upcoming.slice(0, this.RECENT_EVENTS_LIMIT);
   }
 }

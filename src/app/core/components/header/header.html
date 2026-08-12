@@ -1,13 +1,60 @@
-<p></p><header class="navbar">
-  <div class="logo">Tableau de bord</div>
-  
-  <nav class="user-actions">
-    <span *ngIf="userName && userLastname" class="user-name">
-        {{ userName }} {{ userLastname }}
-    </span>
+<header class="navbar">
+    <a routerLink="/dashboard" class="logo">
+        e-Agenda
+    </a>
     
-    <button (click)="logout()" class="logout-btn">Logout</button>
+    <nav class="main-nav">
+        <a 
+            routerLink="/dashboard" 
+            class="nav-link" 
+            routerLinkActive="active-link" 
+            [routerLinkActiveOptions]="{exact: true}"
+
+        >
+            Tableau de Bord
+        </a>
+        
+        <a 
+            routerLink="/events" 
+            class="nav-link" 
+            routerLinkActive="active-link"
+        >
+            Événements
+        </a>
+        
+        <a
+            routerLink="/calendar"
+            class="nav-link"
+            routerLinkActive="active-link"
+        >
+            Calendrier
+        </a>
+
+        <a
+            routerLink="/profile"
+            class="nav-link"
+            routerLinkActive="active-link"
+        >
+            Profil
+        </a>
+
+        <a
+            *ngIf="user()?.role === 'ADMIN'"
+            routerLink="/admin"
+            class="nav-link"
+            routerLinkActive="active-link"
+        >
+            Admin
+        </a>
+    </nav>
     
-    <button routerLink="/calendar" class="add-btn">add</button>
-  </nav>
+    <div class="user-actions">
+        <span *ngIf="user() as u" class="user-name">
+            {{ u.firstName }} {{ u.lastName }}
+        </span>
+        
+        <button (click)="logout()" class="logout-btn">
+            Déconnexion
+        </button>
+    </div>
 </header>

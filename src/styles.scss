@@ -1,11 +1,81 @@
-/* You can add global styles to this file, and also import other style files */
-/*
-  Styles globaux pour l'application (src/styles.scss)
-  Ces styles définissent la palette de couleurs et la typographie de base
-  pour un aspect professionnel et chic.
-*/
+/* =====================================================================
+   e-Agenda — Système de design global
+   Tokens réutilisables (couleurs, typo, espacements, ombres, dégradés),
+   base, et composants partagés (boutons, champs, cartes, layout auth).
+   Tout passe par des variables CSS -> thématisation et évolutivité faciles.
+   ===================================================================== */
 
-// --- 1. Reset et Base ---
+:root {
+  /* ---- Marque / couleurs ---- */
+  --violet-600: #6d28d9;
+  --violet-500: #7c3aed;
+  --violet-400: #8b5cf6;
+  --indigo-500: #6366f1;
+  --fuchsia-500: #d946ef;
+  --pink-500: #ec4899;
+  --coral-500: #fb7185;
+  --coral-600: #f43f5e;
+  --cyan-500: #06b6d4;
+
+  --brand: var(--violet-500);
+  --brand-strong: var(--violet-600);
+  --accent: var(--coral-500);
+
+  /* ---- Sémantique ---- */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #0ea5e9;
+
+  /* ---- Neutres (biais violet léger) ---- */
+  --ink: #1e1b2e;
+  --ink-soft: #322d45;
+  --muted: #6b6780;
+  --faint: #9a95ac;
+  --line: #e9e7f0;
+  --surface: #ffffff;
+  --surface-2: #f7f6fc;
+  --ground: #f4f2fb;
+
+  /* ---- Dégradés (dynamisme / motif) ---- */
+  --grad-brand: linear-gradient(135deg, var(--violet-500) 0%, var(--indigo-500) 50%, var(--pink-500) 100%);
+  --grad-brand-soft: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  --grad-accent: linear-gradient(135deg, var(--coral-500), var(--pink-500));
+  --grad-mesh:
+    radial-gradient(at 18% 22%, rgba(139, 92, 246, 0.55) 0px, transparent 45%),
+    radial-gradient(at 82% 12%, rgba(236, 72, 153, 0.45) 0px, transparent 45%),
+    radial-gradient(at 72% 82%, rgba(6, 182, 212, 0.40) 0px, transparent 45%),
+    radial-gradient(at 25% 88%, rgba(99, 102, 241, 0.45) 0px, transparent 45%);
+
+  /* ---- Typo ---- */
+  --font-display: 'Plus Jakarta Sans', 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+
+  /* ---- Rayons ---- */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* ---- Ombres (teintées violet pour la cohérence) ---- */
+  --sh-sm: 0 1px 2px rgba(30, 27, 46, 0.06), 0 1px 3px rgba(30, 27, 46, 0.05);
+  --sh-md: 0 6px 18px rgba(76, 29, 149, 0.10);
+  --sh-lg: 0 18px 40px rgba(76, 29, 149, 0.16);
+  --sh-glow: 0 10px 30px rgba(124, 58, 237, 0.35);
+
+  /* ---- Espacements ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+}
+
+/* --------------------------- Reset & base --------------------------- */
 *,
 *::before,
 *::after {
@@ -14,51 +84,358 @@
   padding: 0;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; // Police moderne
-  background-color: #f8f9fa; /* Arrière-plan très clair */
-  color: #343a40; /* Texte principal foncé */
+  font-family: var(--font-body);
+  color: var(--ink);
   min-height: 100vh;
-  // Assure une transition douce pour les changements de thème (si implémenté)
-  transition: background-color 0.3s, color 0.3s;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-color: var(--ground);
+  /* Motif de fond : grille très fine + halos colorés diffus */
+  background-image:
+    linear-gradient(rgba(124, 58, 237, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.035) 1px, transparent 1px),
+    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.10) 0px, transparent 40%),
+    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 35%);
+  background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%;
+  background-attachment: fixed;
 }
 
-// --- 2. Variables (Couleurs du Thème) ---
-$primary: #4a69bd; // Bleu élégant (boutons, accents)
-$secondary: #8496c6; // Bleu clair (utilisé pour les cartes subtiles)
-$success: #28a745;
-$danger: #dc3545;
-$warning: #ffc107;
-$light: #ffffff;
-$dark: #212529;
-
-// Mélange pour un dégradé subtil dans le Dashboard ou les Cards (Aspect Chic)
-$gradient-start: #4a69bd;
-$gradient-end: #6d93e8;
-
-// --- 3. Typographie (Titre/Card Style) ---
-h1, h2, h3 {
-  color: $dark;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-// Application du dégradé subtil pour un titre accrocheur
-.app-title-chic {
-  background: linear-gradient(90deg, $gradient-start, $gradient-end);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-size: 2.5rem;
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--ink);
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
-// --- 4. Utilitaires de Design pour la Fluidité ---
-.card-shadow {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Ombre douce */
-  border-radius: 8px; /* Coins arrondis */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  &:hover {
-    transform: translateY(-3px); /* Effet "lévitation" à l'approche */
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+a {
+  color: var(--brand-strong);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+a:hover { color: var(--violet-400); }
+
+::selection {
+  background: rgba(124, 58, 237, 0.18);
+  color: var(--ink);
+}
+
+/* Barre de défilement discrète et raccord */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--violet-400) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--violet-400), var(--indigo-500));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* --------------------------- Utilitaires --------------------------- */
+.gradient-text {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-md);
+}
+
+/* --------------------------- Boutons --------------------------- */
+.btn,
+button.btn {
+  --btn-bg: var(--surface);
+  --btn-fg: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.98rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 0.85rem 1.4rem;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, background 0.16s ease;
+  will-change: transform;
+}
+.btn:disabled,
+button.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-primary,
+button.btn-primary {
+  background: var(--grad-brand-soft);
+  color: #fff;
+  border: none;
+  box-shadow: var(--sh-glow);
+}
+.btn-primary:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(124, 58, 237, 0.45);
+  filter: saturate(1.08);
+}
+.btn-primary:not(:disabled):active { transform: translateY(0); }
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+.btn-secondary:hover { background: #fff; border-color: var(--violet-400); color: var(--brand-strong); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--brand-strong);
+  border: 1px solid transparent;
+}
+.btn-ghost:hover { background: rgba(124, 58, 237, 0.08); }
+
+.btn-block { width: 100%; }
+
+/* --------------------------- Champs de formulaire --------------------------- */
+.form-group { margin-bottom: var(--sp-4); }
+
+.form-group label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.form-control {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 0.8rem 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.form-control::placeholder { color: var(--faint); }
+.form-control:hover { border-color: #d7d2e6; }
+.form-control:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--violet-400);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+}
+.form-control.is-invalid,
+.form-control.ng-invalid.ng-touched {
+  border-color: var(--danger);
+}
+.form-control.is-invalid:focus,
+.form-control.ng-invalid.ng-touched:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+/* Messages d'erreur (remplace le comportement caché de Bootstrap) */
+.validation-error,
+.invalid-feedback {
+  display: block !important;
+  color: var(--danger);
+  font-size: 0.82rem;
+  margin-top: 6px;
+}
+.error-message {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #b91c1c;
+  border-radius: var(--r-md);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  margin-bottom: var(--sp-4);
+}
+
+/* --------------------------- Layout d'authentification --------------------------- */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+/* Panneau de marque : dégradé + mesh coloré + orbes flottants */
+.auth-brand {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  padding: var(--sp-8) var(--sp-7);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(150deg, #4c1d95 0%, #6d28d9 45%, #7c3aed 100%);
+  isolation: isolate;
+}
+.auth-brand::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad-mesh);
+  opacity: 0.9;
+  z-index: -2;
+}
+/* grille fine par-dessus le mesh */
+.auth-brand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(ellipse at 30% 40%, #000 40%, transparent 80%);
+  z-index: -1;
+}
+
+.auth-brand .brand-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.auth-brand .brand-logo .dot {
+  width: 12px; height: 12px; border-radius: 4px;
+  background: var(--grad-accent);
+  box-shadow: 0 0 18px rgba(251, 113, 133, 0.8);
+}
+
+.auth-brand .brand-headline {
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  color: #fff;
+  margin-bottom: var(--sp-4);
+  max-width: 15ch;
+}
+.auth-brand .brand-sub {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1.05rem;
+  max-width: 40ch;
+  margin-bottom: var(--sp-6);
+}
+.auth-brand .brand-points {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.auth-brand .brand-points li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+.auth-brand .brand-points li .tick {
+  flex: none;
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 0.85rem;
+}
+
+/* Orbes flottants décoratifs */
+.auth-brand .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(6px);
+  opacity: 0.55;
+  z-index: -1;
+  animation: float 9s ease-in-out infinite;
+}
+.auth-brand .orb.o1 { width: 180px; height: 180px; right: -40px; top: 18%; background: radial-gradient(circle at 30% 30%, #fb7185, transparent 70%); }
+.auth-brand .orb.o2 { width: 130px; height: 130px; right: 22%; bottom: 8%; background: radial-gradient(circle at 30% 30%, #22d3ee, transparent 70%); animation-delay: -3s; }
+.auth-brand .orb.o3 { width: 90px; height: 90px; left: 12%; top: 12%; background: radial-gradient(circle at 30% 30%, #f0abfc, transparent 70%); animation-delay: -6s; }
+
+/* Colonne formulaire */
+.auth-main {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-6);
+  background: var(--ground);
+}
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-lg);
+  padding: clamp(1.6rem, 3vw, 2.6rem);
+  animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.auth-card .card-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.auth-card .card-subtitle {
+  color: var(--muted);
+  margin-bottom: var(--sp-5);
+  font-size: 0.98rem;
+}
+.auth-card .auth-switch {
+  text-align: center;
+  margin-top: var(--sp-5);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.auth-card .auth-switch a { font-weight: 600; }
+
+/* --------------------------- Animations --------------------------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-18px) translateX(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
+}
+
+/* --------------------------- Responsive auth --------------------------- */
+@media (max-width: 860px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-brand {
+    padding: var(--sp-6) var(--sp-5);
+    min-height: 220px;
+  }
+  .auth-brand .brand-sub,
+  .auth-brand .brand-points { display: none; }
+  .auth-brand .brand-headline { font-size: 1.7rem; margin-bottom: 0; }
 }

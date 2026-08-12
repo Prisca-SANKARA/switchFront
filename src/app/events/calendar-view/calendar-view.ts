@@ -13,6 +13,7 @@ import { EventService } from '../event.service';
 import { IEvent } from '../../core/models/event.models';
 import { HeaderComponent } from '../../core/components/header/header';
 import { EventFormModalComponent } from '../event-form-modal/event-form-modal';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-calendar-view',
@@ -30,12 +31,14 @@ export class CalendarViewComponent implements OnInit {
   
   private eventService = inject(EventService);
   private modalService = inject(NgbModal);
+  private authService = inject(AuthService);
 
   calendarOptions: CalendarOptions = {};
   currentMonth: string = '';
-  
-  // Contient la liste des événements récents pour la card latérale (selon votre demande)
-  recentEvents: IEvent[] = []; 
+
+  // Prochains événements (à venir) pour la card latérale + compteur du jour.
+  recentEvents: IEvent[] = [];
+  todayCount: number = 0;
 
   ngOnInit(): void {
     this.configureCalendar();
@@ -58,11 +61,13 @@ export class CalendarViewComponent implements OnInit {
       editable: true, // Permet le drag-and-drop des événements
       selectable: true, // Permet la sélection de plage de dates
       selectMirror: true, // Affiche un aperçu lors de la sélection
-      
+      dayMaxEvents: 3, // Au-delà, un lien « +N » (garde les cases lisibles)
+      eventDisplay: 'block', // Bloc coloré plein (repère visuel net sur chaque jour)
+
       // ⚠️ Gestion des interactions
       eventClick: this.handleEventClick.bind(this), // Clic sur un événement existant (Édition)
       select: this.handleDateSelect.bind(this),     // Sélection d'une plage (Création)
-      
+
       events: [], // Le tableau sera rempli par loadEvents()
       datesSet: this.handleDatesSet.bind(this) // Pour mettre à jour le titre du mois
     };
@@ -87,28 +92,62 @@ export class CalendarViewComponent implements OnInit {
     // Récupération de tous les événements (avec une limite haute comme pour le Dashboard)
     this.eventService.getAllEvents(1, 1000).subscribe({
       next: (response) => {
-        const fullCalendarEvents = response.events.map(event => ({
-          id: event.id?.toString(),
-          title: event.titre,
-          start: event.dateDebut.replace(' ', 'T'), // Format ISO : YYYY-MM-DDTHH:MM
-          end: event.dateFin.replace(' ', 'T'),     // Format ISO
-          allDay: false, // On suppose que les événements ont une heure
-          extendedProps: {
-            // Stocker l'objet IEvent complet pour l'édition ultérieure
-            eventData: event 
-          }
-        }));
-        
+        const fullCalendarEvents = response.events.map(event => {
+          const color = this.colorFor(event);
+          return {
+            id: event.id?.toString(),
+            title: event.titre,
+            start: event.dateDebut.replace(' ', 'T'), // Format ISO : YYYY-MM-DDTHH:MM
+            end: event.dateFin.replace(' ', 'T'),     // Format ISO
+            allDay: false, // On suppose que les événements ont une heure
+            backgroundColor: color,
+            borderColor: color,
+            extendedProps: {
+              // Stocker l'objet IEvent complet pour l'édition ultérieure
+              eventData: event
+            }
+          };
+        });
+
         // Mise à jour de la propriété 'events' du calendrier
         this.calendarOptions = { ...this.calendarOptions, events: fullCalendarEvents };
-        
-        // Mise à jour de la card des événements récents (simplement les 5 premiers pour l'exemple)
-        this.recentEvents = response.events.slice(0, 5);
+
+        // Card latérale : prochains événements (à venir), triés du plus proche au plus loin.
+        const now = new Date();
+        this.recentEvents = response.events
+          .filter(e => new Date(e.dateFin).getTime() >= now.getTime())
+          .sort((a, b) => new Date(a.dateDebut).getTime() - new Date(b.dateDebut).getTime())
+          .slice(0, 6);
+
+        // Compteur « aujourd'hui ».
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+        this.todayCount = response.events.filter(e => {
+          const d = new Date(e.dateDebut);
+          return d.getTime() >= today.getTime() && d.getTime() < tomorrow.getTime();
+        }).length;
       },
       error: (err) => {
         console.error("Erreur de chargement des événements:", err);
       }
     });
+  }
+
+  /**
+   * Couleur d'un événement selon son état temporel :
+   * gris = passé, vert = en cours, violet = à venir.
+   */
+  colorFor(event: IEvent): string {
+    const now = Date.now();
+    const start = new Date(event.dateDebut).getTime();
+    const end = new Date(event.dateFin).getTime();
+    if (end < now) {
+      return '#9a95ac'; // terminé
+    }
+    if (start <= now && now <= end) {
+      return '#10b981'; // en cours
+    }
+    return '#7c3aed'; // à venir
   }
 
   // --- Gestion des Interactions (Création et Édition) ---
@@ -126,8 +165,11 @@ export class CalendarViewComponent implements OnInit {
    */
   handleEventClick(clickInfo: EventClickArg) {
     // On récupère l'objet IEvent complet stocké dans extendedProps
-    const eventToEdit: IEvent = clickInfo.event.extendedProps['eventData'];
-    this.openEventModal(eventToEdit);
+    const event: IEvent = clickInfo.event.extendedProps['eventData'];
+    // Lecture seule si l'utilisateur n'est pas le créateur (simple participant).
+    const uid = this.authService.getCurrentUser()?.id;
+    const readOnly = !uid || event.creatorId !== uid;
+    this.openEventModal(event, null, readOnly);
   }
 
   /**
@@ -135,12 +177,13 @@ export class CalendarViewComponent implements OnInit {
    * @param eventToEdit L'objet IEvent si mode édition, sinon null.
    * @param initialDate Date/heure pour préremplir le champ (si mode création).
    */
-  openEventModal(eventToEdit: IEvent | null, initialDate: string | null = null): void {
+  openEventModal(eventToEdit: IEvent | null, initialDate: string | null = null, readOnly: boolean = false): void {
     const modalRef = this.modalService.open(EventFormModalComponent, { size: 'lg', centered: true });
-    
+
     // Passage des données à la modale
     modalRef.componentInstance.eventToEdit = eventToEdit;
     modalRef.componentInstance.initialDate = initialDate;
+    modalRef.componentInstance.readOnly = readOnly;
 
     // Traitement du résultat après fermeture de la modale
     modalRef.result.then((result) => {

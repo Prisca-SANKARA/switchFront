@@ -20,6 +20,8 @@ export class EventFormModalComponent implements OnInit {
   // ⚠️ Input pour l'édition : l'événement à modifier
   @Input() eventToEdit: IEvent | null = null;
   @Input() initialDate: string | null = null; // Date cliquée pour la création rapide
+  // Lecture seule : un participant (non-créateur) peut consulter mais pas modifier.
+  @Input() readOnly: boolean = false;
 
   private fb = inject(FormBuilder);
   // Service pour interagir avec la modale elle-même (fermer, annuler)
@@ -47,8 +49,13 @@ export class EventFormModalComponent implements OnInit {
     }
     
     // S'assurer qu'il y a au moins un champ participant pour l'UX si on n'est pas en édition
-    if (this.participants.length === 0) {
+    if (this.participants.length === 0 && !this.readOnly) {
         this.addParticipant();
+    }
+
+    // En lecture seule : on verrouille tout le formulaire.
+    if (this.readOnly) {
+      this.eventForm.disable();
     }
   }
 
@@ -64,8 +71,11 @@ export class EventFormModalComponent implements OnInit {
       // ⚠️ IMPORTANT : Les dates doivent être des strings au format attendu par Spring Boot
       dateDebut: ['', Validators.required],
       dateFin: ['', Validators.required],
+      // Récurrence (création uniquement) : NONE = événement unique.
+      recurrence: ['NONE'],
+      recurrenceEndDate: [''],
       // ⚠️ FormArray pour la liste des participants
-      participants: this.fb.array([]) 
+      participants: this.fb.array([])
     });
   }
   
@@ -75,9 +85,10 @@ export class EventFormModalComponent implements OnInit {
   createParticipantGroup(participant: IParticipant = { nom: '', prenom: '', email: '' }): FormGroup {
     return this.fb.group({
       // L'ID est inclus si l'entité existe déjà (édition)
-      id: [participant.id], 
+      id: [participant.id],
       nom: [participant.nom, Validators.required],
-      prenom: [participant.prenom, Validators.required],
+      // Prénom optionnel : le backend ne stocke qu'un champ "nom" (nom complet).
+      prenom: [participant.prenom],
       email: [participant.email, [Validators.required, Validators.email]],
     });
   }
@@ -112,9 +123,12 @@ export class EventFormModalComponent implements OnInit {
     });
 
     // Remplissage du FormArray des participants
-    event.participants.forEach(participant => {
-      this.participants.push(this.createParticipantGroup(participant));
-    });
+    if (event.participant && Array.isArray(event.participant)) {
+  event.participant.forEach(participant => {
+    this.participants.push(this.createParticipantGroup(participant));
+  });
+}
+
   }
 
   /**
@@ -146,6 +160,9 @@ export class EventFormModalComponent implements OnInit {
    * Soumission du formulaire (Création ou Mise à jour).
    */
   onSubmit(): void {
+    if (this.readOnly) {
+      return; // Sécurité UX : aucune soumission en lecture seule.
+    }
     if (this.eventForm.invalid) {
       // Marquer tous les champs comme 'touchés' pour afficher les erreurs
       this.eventForm.markAllAsTouched(); 
@@ -162,8 +179,14 @@ export class EventFormModalComponent implements OnInit {
         lieu: rawFormValue.lieu,
         dateDebut: this.formatDateForBackend(rawFormValue.dateDebut),
         dateFin: this.formatDateForBackend(rawFormValue.dateFin),
+        // Récurrence : uniquement à la création (l'édition passe par le scope).
+        recurrence: rawFormValue.recurrence || 'NONE',
+        recurrenceEndDate:
+          rawFormValue.recurrence && rawFormValue.recurrence !== 'NONE' && rawFormValue.recurrenceEndDate
+            ? this.formatDateForBackend(rawFormValue.recurrenceEndDate)
+            : undefined,
         // Le FormArray fournit déjà les objets IParticipant
-        participants: rawFormValue.participants
+        participant: rawFormValue.participants
     };
     
     // Si on est en mode édition, on inclut l'ID
@@ -193,9 +216,18 @@ export class EventFormModalComponent implements OnInit {
   }
   
   updateEvent(id: number, event: IEvent): void {
-      this.eventService.updateEvent(id, event).subscribe({
+      // Événement récurrent : demander si la modification vaut pour toute la série.
+      let scope: 'occurrence' | 'series' = 'occurrence';
+      if (this.eventToEdit?.seriesId) {
+        scope = confirm(
+          'Cet événement fait partie d\'une série récurrente.\n\nOK = modifier TOUTE la série\nAnnuler = seulement cette occurrence',
+        )
+          ? 'series'
+          : 'occurrence';
+      }
+      this.eventService.updateEvent(id, event, scope).subscribe({
           next: () => {
-              this.activeModal.close(true); 
+              this.activeModal.close(true);
           },
           error: (err) => {
               console.error('Erreur de mise à jour d\'événement:', err);

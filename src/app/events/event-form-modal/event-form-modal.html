@@ -1,10 +1,15 @@
 <div class="modal-header">
-  <h4 class="modal-title">{{ eventToEdit ? 'Modifier l\'événement' : 'Nouvel événement' }}</h4>
+  <h4 class="modal-title">{{ readOnly ? 'Détails de l\'événement' : (eventToEdit ? 'Modifier l\'événement' : 'Nouvel événement') }}</h4>
   <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
 </div>
 
 <form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
   <div class="modal-body">
+
+    <div *ngIf="readOnly" class="alert alert-info" style="border-radius:12px;">
+      🔒 Vous participez à cet événement. Consultation en lecture seule — seul le créateur peut le modifier.
+    </div>
+
 
     <fieldset class="form-section">
       <legend>Détails de l'événement</legend>
@@ -44,6 +49,28 @@
         <textarea id="description" class="form-control" formControlName="description" rows="3"></textarea>
       </div>
 
+      <!-- Récurrence : uniquement à la création -->
+      <div class="row" *ngIf="!eventToEdit">
+        <div class="col-md-6 mb-3">
+          <label for="recurrence" class="form-label">Récurrence</label>
+          <select id="recurrence" class="form-control" formControlName="recurrence">
+            <option value="NONE">Aucune (événement unique)</option>
+            <option value="DAILY">Tous les jours</option>
+            <option value="WEEKLY">Toutes les semaines</option>
+            <option value="MONTHLY">Tous les mois</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3" *ngIf="eventForm.get('recurrence')?.value !== 'NONE'">
+          <label for="recurrenceEndDate" class="form-label">Jusqu'au *</label>
+          <input id="recurrenceEndDate" type="datetime-local" class="form-control" formControlName="recurrenceEndDate">
+          <small class="text-muted">Date de fin de la répétition.</small>
+        </div>
+      </div>
+
+      <div *ngIf="eventToEdit?.seriesId" class="alert alert-info" style="border-radius:12px;">
+        🔁 Événement récurrent. À la sauvegarde, vous pourrez appliquer les changements à toute la série ou à cette occurrence seulement.
+      </div>
+
     </fieldset>
 
     <fieldset formArrayName="participants" class="form-section mt-4">
@@ -73,7 +100,7 @@
             </div>
           </div>
           
-          <div class="col-md-1 d-flex align-items-center justify-content-end">
+          <div class="col-md-1 d-flex align-items-center justify-content-end" *ngIf="!readOnly">
             <button type="button" class="btn btn-sm btn-danger remove-btn" (click)="removeParticipant(i)" [disabled]="participants.length === 1">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -82,7 +109,7 @@
         </div>
       </div>
       
-      <button type="button" class="btn btn-sm btn-outline-primary mt-3" (click)="addParticipant()">
+      <button type="button" class="btn btn-sm btn-outline-primary mt-3" (click)="addParticipant()" *ngIf="!readOnly">
         + Ajouter un participant
       </button>
 
@@ -91,8 +118,10 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss('Cancel click')">Annuler</button>
-    <button type="submit" class="btn btn-primary" [disabled]="eventForm.invalid">
+    <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss('Cancel click')">
+      {{ readOnly ? 'Fermer' : 'Annuler' }}
+    </button>
+    <button *ngIf="!readOnly" type="submit" class="btn btn-primary" [disabled]="eventForm.invalid">
       {{ eventToEdit ? 'Sauvegarder les modifications' : 'Créer l\'événement' }}
     </button>
   </div>

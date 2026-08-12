@@ -1,28 +1,80 @@
-<div class="login-container">
-  <h2>Connexion à e-agenda</h2>
+<div class="auth-shell">
+  <!-- Panneau de marque -->
+  <aside class="auth-brand">
+    <div class="brand-logo"><span class="dot"></span> e-Agenda</div>
 
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input id="email" type="email" formControlName="email">
-      <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="validation-error">
-        Veuillez entrer un email valide.
-      </div>
+    <div>
+      <h1 class="brand-headline">Votre agenda collaboratif, en temps réel.</h1>
+      <p class="brand-sub">
+        Planifiez, invitez, et suivez chaque événement d'équipe. Notifications instantanées,
+        rappels par email, et sécurité renforcée par authentification à deux facteurs.
+      </p>
+      <ul class="brand-points">
+        <li><span class="tick">✓</span> Notifications temps réel (WebSocket)</li>
+        <li><span class="tick">✓</span> Emails transactionnels automatiques</li>
+        <li><span class="tick">✓</span> Connexion sécurisée MFA (TOTP)</li>
+      </ul>
     </div>
 
-    <div class="form-group">
-      <label for="password">Mot de passe</label>
-      <input id="password" type="password" formControlName="password">
-      <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="validation-error">
-        Le mot de passe est requis.
-      </div>
+    <span class="orb o1"></span>
+    <span class="orb o2"></span>
+    <span class="orb o3"></span>
+  </aside>
+
+  <!-- Colonne formulaire -->
+  <main class="auth-main">
+    <div class="auth-card">
+      <h2 class="card-title">Bon retour 👋</h2>
+      <p class="card-subtitle">Connectez-vous pour accéder à votre espace.</p>
+
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+      <!-- Étape 1 : email + mot de passe -->
+      <form *ngIf="!mfaRequired" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" class="form-control" placeholder="vous@exemple.com">
+          <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="validation-error">
+            Veuillez entrer un email valide.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input id="password" type="password" formControlName="password" class="form-control" placeholder="••••••••">
+          <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="validation-error">
+            Le mot de passe est requis.
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="loginForm.invalid" class="btn btn-primary btn-block">Se connecter</button>
+
+        <p style="text-align:right; margin-top:10px;">
+          <a [routerLink]="['/forgot-password']" style="font-size:0.9rem;">Mot de passe oublié ?</a>
+        </p>
+      </form>
+
+      <!-- Étape 2 : code MFA -->
+      <form *ngIf="mfaRequired" [formGroup]="mfaForm" (ngSubmit)="onVerifyMfa()">
+        <p class="card-subtitle" style="text-align:center;">
+          Saisissez le code à 6 chiffres de votre application d'authentification.
+        </p>
+        <div class="form-group">
+          <label for="code">Code de vérification</label>
+          <input id="code" type="text" inputmode="numeric" maxlength="6" formControlName="code"
+                 class="form-control" autocomplete="one-time-code" placeholder="123456"
+                 style="text-align:center; letter-spacing:0.5em; font-size:1.2rem;">
+          <div *ngIf="mfaForm.get('code')?.invalid && mfaForm.get('code')?.touched" class="validation-error">
+            Le code doit comporter 6 chiffres.
+          </div>
+        </div>
+        <button type="submit" [disabled]="mfaForm.invalid" class="btn btn-primary btn-block">Vérifier</button>
+        <button type="button" (click)="cancelMfa()" class="btn btn-secondary btn-block" style="margin-top:10px;">Retour</button>
+      </form>
+
+      <p *ngIf="!mfaRequired" class="auth-switch">
+        Pas encore de compte ? <a [routerLink]="['/register']">S'inscrire</a>
+      </p>
     </div>
-
-    <button type="submit" [disabled]="loginForm.invalid">Se connecter</button>
-  </form>
-
-  <p>Pas encore de compte ? <a [routerLink]="['/register']">S'inscrire</a></p>
+  </main>
 </div>

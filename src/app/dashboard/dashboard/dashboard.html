@@ -1,43 +1,92 @@
 <app-header></app-header>
 
 <div class="dashboard-content">
-  <div class="kpi-row">
-    <div class="kpi-card">
-      <h2>Mes événements du jour</h2>
-      <p class="count">{{ eventsToday }}</p>
+
+  <!-- Accueil -->
+  <header class="dash-hero">
+    <div>
+      <p class="hello">Bonjour<span *ngIf="user() as u">, {{ u.firstName }}</span> 👋</p>
+      <h1>Votre tableau de bord</h1>
+      <p class="sub">Voici un aperçu de vos événements à venir.</p>
     </div>
-    <div class="kpi-card">
-      <h2>Mes événements de la semaine</h2>
-      <p class="count">{{ eventsThisWeek }}</p>
+    <button (click)="openNewEventModal()" class="btn btn-primary">
+      <span class="plus">+</span> Nouvel événement
+    </button>
+  </header>
+
+  <!-- Indicateurs -->
+  <div class="kpi-row">
+    <div class="kpi-card k-today">
+      <div class="kpi-ic">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">Aujourd'hui</p>
+        <p class="kpi-count">{{ eventsToday }}</p>
+      </div>
+    </div>
+
+    <div class="kpi-card k-week">
+      <div class="kpi-ic">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">Cette semaine</p>
+        <p class="kpi-count">{{ eventsThisWeek }}</p>
+      </div>
+    </div>
+
+    <div class="kpi-card k-recent">
+      <div class="kpi-ic">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">À venir</p>
+        <p class="kpi-count">{{ upcomingCount }}</p>
+      </div>
     </div>
   </div>
 
+  <!-- Contenu principal -->
   <div class="main-row">
-    
-    <div class="recent-events-card">
-      <h3>Mes événements récents</h3>
-      
-      <div class="events-list">
-        <div *ngFor="let event of recentEvents" class="event-item">
-          <h4>{{ event.titre }}</h4>
-          <p class="date">{{ event.dateDebut | date: 'dd/MM à HH:mm' }} - {{ event.dateFin | date: 'HH:mm' }}</p>
-          <p class="location">Lieu: {{ event.lieu }}</p>
-          <hr>
-        </div>
 
-        <p *ngIf="recentEvents.length === 0">Aucun événement récent ou futur proche.</p>
+    <section class="panel recent-events-card">
+      <div class="panel-head">
+        <h3>Prochains événements</h3>
+        <a routerLink="/events" class="all-events-link">Voir tout</a>
       </div>
 
-      <a routerLink="/events" class="all-events-link">Voir tous les événements</a>
-    </div>
+      <div class="events-list">
+        <div *ngFor="let event of recentEvents" class="event-item">
+          <span class="event-dot"></span>
+          <div class="event-body">
+            <h4>{{ event.titre }}</h4>
+            <p class="event-meta">
+              {{ event.dateDebut | date: 'dd/MM à HH:mm' }} — {{ event.dateFin | date: 'HH:mm' }}
+              <span *ngIf="event.lieu" class="event-loc">• {{ event.lieu }}</span>
+            </p>
+          </div>
+        </div>
 
-    <div class="quick-actions-card">
+        <div *ngIf="recentEvents.length === 0" class="empty-state">
+          <div class="empty-illustration">🗓️</div>
+          <p>Aucun événement à venir pour le moment.</p>
+          <button (click)="openNewEventModal()" class="btn btn-secondary">Créer votre premier événement</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel quick-actions-container">
+      <h3>Actions rapides</h3>
+      <button (click)="openNewEventModal()" class="action-btn new-event-btn">
+        <span class="action-ic">+</span> Nouvel événement
+      </button>
       <button routerLink="/calendar" class="action-btn view-calendar-btn">
-        Voir calendrier
+        <span class="action-ic">📆</span> Voir le calendrier
       </button>
-      <button routerLink="/new-event" class="action-btn new-event-btn">
-        Nouvel événement
+      <button routerLink="/events" class="action-btn">
+        <span class="action-ic">📋</span> Tous les événements
       </button>
-    </div>
+    </section>
   </div>
 </div>

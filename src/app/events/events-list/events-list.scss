@@ -1,107 +1,345 @@
 /* src/app/events/events-list/events-list.component.scss */
+@use "sass:color";
 
-$primary-color: #007bff;
-$danger-color: #dc3545;
+// ===================================
+// PALETTE VIOLETTE
+// ===================================
+$primary-color: #512DA8;
+$primary-color-dark: #4527A0;
+$secondary-color: #757575;
+$background-color: #FAFAFA;
 $card-bg: #ffffff;
-$border-color: #e9ecef;
+$border-color: #EEEEEE;
+$text-color-dark: #212121;
+$danger-color: #F44336;
 
 .events-list-container {
-  padding: 20px;
-  background-color: #f8f9fa;
-  min-height: 100vh;
+    padding: 30px;
+    background-color: $background-color;
+    min-height: 100vh;
 }
 
 h1 {
-  margin-bottom: 30px;
-  color: #343a40;
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: $primary-color;
+    font-weight: 700;
+}
+
+.btn-secondary {
+    background-color: $secondary-color;
+    color: white;
+    border: none;
+    transition: background-color 0.3s;
+    margin-bottom: 0 !important;
+    
+    &:hover {
+        background-color: color.adjust($secondary-color, $lightness: -10%);
+    }
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+
+    .filter-btn {
+        padding: 8px 18px;
+        border-radius: 999px;
+        border: 1px solid $border-color;
+        background: #fff;
+        color: $secondary-color;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover { border-color: $primary-color; color: $primary-color; }
+        &.active { background: $primary-color; border-color: $primary-color; color: #fff; }
+    }
 }
 
 .events-grid {
-  display: grid;
-  // Grille de 3 colonnes par défaut
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-  gap: 25px;
-  margin-bottom: 40px;
-}
-
-.event-card {
-  background-color: $card-bg;
-  border: 1px solid $border-color;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-
-  .card-header {
-    background-color: $primary-color;
-    color: white;
-    padding: 15px;
-    
-    h3 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-    .location {
-        font-size: 0.8rem;
-        opacity: 0.8;
-    }
-  }
-
-  .card-body {
-    padding: 15px;
-    flex-grow: 1;
-
-    .description {
-        font-style: italic;
-        color: #6c757d;
-        margin-bottom: 10px;
-    }
-    
-    .details p {
-        margin: 5px 0;
-        font-size: 0.9rem;
-    }
-    
-    .participants-list {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px dotted $border-color;
-        font-size: 0.85rem;
-    }
-  }
-
-  .card-footer {
-    padding: 15px;
-    border-top: 1px solid $border-color;
-    display: flex;
-    justify-content: space-between;
-
-    .btn-danger {
-        background-color: $danger-color;
-        border-color: $danger-color;
-    }
-  }
-}
-
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 0;
-
-  .page-number {
-      // Pour les boutons de page
-      margin: 0 5px;
-  }
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+    margin-top: 0;
 }
 
 .no-events-message {
-    grid-column: 1 / -1; // Prend toute la largeur de la grille
+    grid-column: 1 / -1;
     text-align: center;
     padding: 50px;
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-    border-radius: 8px;
+    background-color: #F3E5F5;
+    border: 1px solid #D1C4E9;
+    border-radius: 12px;
+    color: $text-color-dark;
+    font-weight: 500;
+}
+
+.event-card {
+    background-color: $card-bg;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease;
+    height: 100%;
+
+    &:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        background-color: $primary-color;
+        color: white;
+        padding: 15px;
+        
+        h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+        .location {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            display: block;
+        }
+    }
+
+    .card-body {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+
+        .description {
+            font-style: italic;
+            color: $secondary-color;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            min-height: 3em;
+        }
+        
+        .details {
+            margin-bottom: 15px;
+            
+            p {
+                margin: 8px 0;
+                font-size: 0.95rem;
+                color: $text-color-dark;
+                
+                strong {
+                    color: $primary-color;
+                    font-weight: 600;
+                }
+            }
+        }
+        
+        .participants-list {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid $border-color;
+            font-size: 0.85rem;
+            color: $secondary-color;
+            font-weight: 500;
+            line-height: 1.6;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+
+            .participant-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: #f3eefb;
+                border-radius: 999px;
+                padding: 3px 10px 3px 12px;
+                color: $text-color-dark;
+            }
+
+            .participant-more {
+                color: $secondary-color;
+                font-weight: 600;
+            }
+        }
+    }
+
+    // Pastilles de statut RSVP (réutilisées dans la barre RSVP).
+    .rsvp-pill {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .rsvp-accepted { background: #e6f7ee; color: #0f7a45; }
+    .rsvp-declined { background: #fdeaea; color: #c0392b; }
+    .rsvp-tentative { background: #fff4e0; color: #b7791f; }
+    .rsvp-pending  { background: #eeeeee; color: #757575; }
+
+    .rsvp-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 20px 16px;
+        background: #faf8ff;
+        border-top: 1px dashed $border-color;
+
+        .rsvp-current {
+            font-size: 0.85rem;
+            color: $secondary-color;
+
+            strong {
+                margin-left: 4px;
+                padding: 2px 8px;
+                border-radius: 999px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .rsvp-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rsvp-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: 1px solid transparent;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: $text-color-dark;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+
+            &:hover { transform: translateY(-1px); }
+
+            &.accept.active   { background: #0f7a45; color: #fff; }
+            &.tentative.active { background: #b7791f; color: #fff; }
+            &.decline.active  { background: #c0392b; color: #fff; }
+        }
+    }
+
+    .card-footer {
+        padding: 15px 20px;
+        border-top: 1px solid $border-color;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        background-color: #FAFAFA;
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: $primary-color;
+            color: white;
+            
+            &:hover {
+                background-color: $primary-color-dark;
+            }
+        }
+        
+        .btn-danger {
+            background-color: $danger-color;
+            color: white;
+            
+            &:hover {
+                background-color: color.adjust($danger-color, $lightness: -10%);
+            }
+        }
+    }
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 0;
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: 1px solid;
+        cursor: pointer;
+    }
+
+    .btn-outline-secondary {
+        color: $secondary-color;
+        border-color: $secondary-color;
+        background-color: transparent;
+        
+        &:hover:not(:disabled) {
+            background-color: $secondary-color;
+            color: white;
+        }
+        
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .page-number {
+        .btn {
+            min-width: 40px;
+        }
+
+        .btn-info {
+            background-color: $primary-color;
+            border-color: $primary-color;
+            color: white;
+        }
+
+        .btn-outline-info {
+            color: $primary-color;
+            border-color: $primary-color;
+            background-color: transparent;
+            
+            &:hover {
+                background-color: rgba($primary-color, 0.1);
+                color: $primary-color-dark;
+            }
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .events-list-container {
+        padding: 20px;
+    }
+    
+    .events-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .pagination-controls {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
 }

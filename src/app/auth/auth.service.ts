@@ -1,86 +1,173 @@
 // src/app/auth/auth.service.ts
 
-import { Injectable } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { ILoginRequest, IRegisterRequest, IAuthResponse } from '../core/models/auth.models';
+import {
+  ILoginRequest,
+  IRegisterRequest,
+  IAuthResponse,
+  IUser,
+  IMfaVerifyRequest,
+} from '../core/models/auth.models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
   private apiUrl = environment.apiUrl + '/auth';
-  private readonly TOKEN_KEY = 'jwtToken'; // Clé pour le stockage local
 
-     private readonly FIRSTNAME_KEY = 'userFirstname';
-    private readonly LASTNAME_KEY = 'userLastname';
+  private readonly ACCESS_KEY = 'accessToken';
+  private readonly REFRESH_KEY = 'refreshToken';
+  private readonly USER_KEY = 'currentUser';
 
-  constructor(private http: HttpClient) { }
+  // Utilisateur courant exposé en signal (Angular 20) pour l'UI (header, etc.).
+  private readonly _currentUser = signal<IUser | null>(this.readUser());
+  readonly currentUser = this._currentUser.asReadonly();
+  readonly isLoggedIn = computed(() => this._currentUser() !== null);
+
+  constructor(private http: HttpClient) {}
 
   /**
-   * Enregistre un nouvel utilisateur.
-   * @param request Les données d'inscription (nom, prénom, email, mot de passe).
+   * Inscription. Le backend renvoie directement une paire de tokens (auto-login),
+   * on ouvre donc la session immédiatement.
    */
   register(request: IRegisterRequest): Observable<IAuthResponse> {
-    // Pourquoi : Appel POST vers l'endpoint Spring Boot pour la création de compte.
-    return this.http.post<IAuthResponse>(`${this.apiUrl}/register`, request).pipe(
-      // Stocke immédiatement le token après une inscription réussie pour connecter l'utilisateur
-      tap(response => this.saveToken(response.token))
-    );
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/register`, request)
+      .pipe(tap((res) => this.saveSession(res)));
   }
 
   /**
-   * Connecte l'utilisateur.
-   * @param request Les données de connexion (email, mot de passe).
+   * Connexion.
+   * - Sans MFA : le backend renvoie access + refresh -> session ouverte.
+   * - Avec MFA : le backend renvoie mfaRequired=true + un mfaToken (aucun token
+   *   définitif). On NE sauvegarde rien ; le composant login demandera le code
+   *   puis appellera verifyMfa().
    */
   login(request: ILoginRequest): Observable<IAuthResponse> {
-    // Pourquoi : Appel POST vers l'endpoint Spring Boot pour l'authentification.
-    return this.http.post<IAuthResponse>(`${this.apiUrl}/login`, request).pipe(
-      // tap : opérateur RxJS pour effectuer une action (ici, le stockage) sans modifier le flux de données.
-      tap(response => {
-        this.saveToken(response.token);
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/login`, request)
+      .pipe(tap((res) => this.saveSession(res)));
+  }
 
-       localStorage.setItem(this.FIRSTNAME_KEY, response.firstname);
-        localStorage.setItem(this.LASTNAME_KEY, response.lastname);
-      })
+  /**
+   * Second facteur : échange le mfaToken + le code TOTP contre les vrais tokens.
+   */
+  /** Vérifie l'email d'inscription via le jeton reçu, puis connecte (tokens). */
+  verifyEmail(token: string): Observable<IAuthResponse> {
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/verify-email`, { token })
+      .pipe(tap((res) => this.saveSession(res)));
+  }
+
+  verifyMfa(request: IMfaVerifyRequest): Observable<IAuthResponse> {
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/mfa/verify`, request)
+      .pipe(tap((res) => this.saveSession(res)));
+  }
+
+  /**
+   * Renouvelle la paire de tokens à partir du refresh token stocké.
+   */
+  refresh(): Observable<IAuthResponse> {
+    const refreshToken = this.getRefreshToken();
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/refresh`, { refreshToken })
+      .pipe(tap((res) => this.saveSession(res)));
+  }
+
+  /** Invité : définit son mot de passe depuis le jeton reçu par email (active + connecte). */
+  setPassword(token: string, password: string): Observable<IAuthResponse> {
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/set-password`, { token, password })
+      .pipe(tap((res) => this.saveSession(res)));
+  }
+
+  /** Demande un email de réinitialisation (réponse toujours générique). */
+  forgotPassword(email: string): Observable<IAuthResponse> {
+    return this.http.post<IAuthResponse>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  /** Réinitialise le mot de passe depuis le jeton reçu par email (connecte). */
+  resetPassword(token: string, password: string): Observable<IAuthResponse> {
+    return this.http
+      .post<IAuthResponse>(`${this.apiUrl}/reset-password`, { token, password })
+      .pipe(tap((res) => this.saveSession(res)));
+  }
+
+  /** Change le mot de passe de l'utilisateur connecté (endpoint protégé). */
+  changePassword(currentPassword: string, newPassword: string): Observable<IAuthResponse> {
+    return this.http.post<IAuthResponse>(`${environment.apiUrl}/account/change-password`, {
+      currentPassword,
+      newPassword,
+    });
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.ACCESS_KEY);
+    localStorage.removeItem(this.REFRESH_KEY);
+    localStorage.removeItem(this.USER_KEY);
+    this._currentUser.set(null);
+  }
+
+  /** Utilisé par l'intercepteur JWT : renvoie l'access token. */
+  getToken(): string | null {
+    return localStorage.getItem(this.ACCESS_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_KEY);
+  }
+
+  getCurrentUser(): IUser | null {
+    return this._currentUser();
+  }
+
+  /** Rafraîchit l'utilisateur courant depuis /me (ex : après activation MFA). */
+  refreshCurrentUser(): Observable<IUser> {
+    return this.http.get<IUser>(`${this.apiUrl}/me`).pipe(
+      tap((user) => {
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+        this._currentUser.set(user);
+      }),
     );
   }
 
-  /**
-   * Déconnecte l'utilisateur et efface le token.
-   * Pourquoi : Réinitialise l'état d'authentification dans le navigateur.
-   */
-  logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-  }
-
-  /**
-   * Sauvegarde le token JWT dans le localStorage.
-   */
-  private saveToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
-     localStorage.removeItem(this.FIRSTNAME_KEY);
-    localStorage.removeItem(this.LASTNAME_KEY);
-  }
-
-  /**
-   * Récupère le token JWT stocké.
-   * Pourquoi : Le JWT Interceptor en aura besoin pour sécuriser les requêtes.
-   */
-  getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  /**
-   * Vérifie si l'utilisateur est connecté (présence du token).
-   * Pourquoi : Utilisé par l'Auth Guard pour protéger les routes.
-   */
+  /** Utilisé par l'Auth Guard. */
   isAuthenticated(): boolean {
-    const token = this.getToken();
-    // ⚠️ TODO : Implémenter une vérification de l'expiration du token si nécessaire
-    return !!token;
+    return !!this.getToken();
+  }
+
+  /**
+   * Persiste la session à partir d'une réponse d'auth. Ne fait rien si la
+   * réponse ne contient pas d'access token (cas du challenge MFA).
+   */
+  private saveSession(res: IAuthResponse): void {
+    if (!res || !res.accessToken) {
+      return;
+    }
+    localStorage.setItem(this.ACCESS_KEY, res.accessToken);
+    if (res.refreshToken) {
+      localStorage.setItem(this.REFRESH_KEY, res.refreshToken);
+    }
+    if (res.user) {
+      localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+      this._currentUser.set(res.user);
+    }
+  }
+
+  private readUser(): IUser | null {
+    const raw = localStorage.getItem(this.USER_KEY);
+    if (!raw) {
+      return null;
+    }
+    try {
+      return JSON.parse(raw) as IUser;
+    } catch {
+      return null;
+    }
   }
 }

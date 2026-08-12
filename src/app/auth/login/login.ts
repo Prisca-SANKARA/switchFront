@@ -1,4 +1,3 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -8,26 +7,30 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink], // Ajout des modules requis
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.scss'
+  styleUrl: './login.scss',
 })
-
 export class LoginComponent implements OnInit {
-
-     // Injection des dépendances (Angular 20 style)
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
 
   loginForm!: FormGroup;
-  errorMessage: string | null = null; // Pour afficher les erreurs du backend
+  mfaForm!: FormGroup;
+  errorMessage: string | null = null;
+
+  // Passe en mode "second facteur" quand le backend renvoie mfaRequired=true.
+  mfaRequired = false;
+  private mfaToken: string | null = null;
 
   ngOnInit(): void {
-    // Pourquoi : Création du formulaire réactif pour la connexion.
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+    });
+    this.mfaForm = this.fb.group({
+      code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
     });
   }
 
@@ -39,20 +42,47 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const request = this.loginForm.value;
-
-    this.authService.login(request).subscribe({
+    this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
-        console.log('Connexion réussie:', response);
-        // Pourquoi : Redirection vers le tableau de bord après succès de la connexion.
+        if (response.mfaRequired && response.mfaToken) {
+          // Étape 1 validée (mot de passe). On demande le code à 6 chiffres.
+          this.mfaRequired = true;
+          this.mfaToken = response.mfaToken;
+          return;
+        }
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        // Pourquoi : Gérer les erreurs de connexion (ex: identifiants invalides).
         console.error('Erreur de connexion:', err);
-        // Afficher un message d'erreur plus convivial à l'utilisateur
         this.errorMessage = err.error?.message || 'Identifiants incorrects ou erreur serveur.';
-      }
+      },
     });
+  }
+
+  onVerifyMfa(): void {
+    this.errorMessage = null;
+
+    if (this.mfaForm.invalid || !this.mfaToken) {
+      this.errorMessage = 'Entrez le code à 6 chiffres de votre application.';
+      return;
+    }
+
+    this.authService
+      .verifyMfa({ mfaToken: this.mfaToken, code: this.mfaForm.value.code })
+      .subscribe({
+        next: () => this.router.navigate(['/dashboard']),
+        error: (err) => {
+          console.error('Erreur MFA:', err);
+          this.errorMessage = err.error?.message || 'Code incorrect ou expiré.';
+        },
+      });
+  }
+
+  /** Revenir à l'écran mot de passe (annuler la MFA en cours). */
+  cancelMfa(): void {
+    this.mfaRequired = false;
+    this.mfaToken = null;
+    this.errorMessage = null;
+    this.mfaForm.reset();
   }
 }
