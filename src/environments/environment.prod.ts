@@ -7,5 +7,5 @@
 // (https -> wss) par RealtimeService.
 export const environment = {
   production: true,
-  apiUrl: 'https://VOTRE-BACKEND.onrender.com/api',
+  apiUrl: 'https://eagenda-backend.onrender.com/api',
 };
